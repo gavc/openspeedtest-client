@@ -29,14 +29,15 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
 
-    - name: Publish Native AOT
+    - name: Publish single-file app
       run: |
         dotnet publish src/OpenSpeedTestClient/OpenSpeedTestClient.csproj `
           -c Release `
           -r win-x64 `
-          -p:PublishAot=true `
           -p:PublishSingleFile=true `
-          --self-contained `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          --self-contained true `
           -o publish
 
     - name: Copy config to publish directory
@@ -86,6 +87,6 @@ jobs:
           
           ### Requirements
           - Windows 10/11 (x64)
-          - No .NET runtime required (Native AOT)
+          - No .NET runtime required (self-contained single file)
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
