@@ -1,11 +1,11 @@
 # OpenSpeedTest Client
 
-A minimal, self-contained network speed test client for Windows with both GUI and CLI modes. Built with .NET 9 Native AOT for zero-dependency deployment.
+A minimal, self-contained network speed test client for Windows with both GUI and CLI modes. Built with .NET 9 and published as a single-file, self-contained executable for zero-dependency deployment.
 
 ## Features
 
 - **Dual Mode Operation**: GUI for interactive testing, CLI for automation and remote execution
-- **Native AOT Compilation**: Single executable with no runtime dependencies
+- **Single-File Deployment**: Self-contained executable with no runtime dependencies
 - **High-DPI Support**: Per-monitor DPI awareness for modern displays
 - **Comprehensive Metrics**: Download/Upload speed, Ping, and Jitter measurements
 - **PowerShell-Friendly**: JSON output for easy scripting and remote monitoring
@@ -242,7 +242,7 @@ For issues or questions:
 ## Acknowledgments
 
 - [OpenSpeedTest](https://openspeedtest.com) - HTML5 speed test server
-- Built with .NET 9 Native AOT
+- Built with .NET 9 single-file publish
 
 
 
