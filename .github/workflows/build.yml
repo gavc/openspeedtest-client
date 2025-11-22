@@ -1,0 +1,91 @@
+name: Build and Release
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '9.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --configuration Release --no-build --verbosity normal
+
+    - name: Publish Native AOT
+      run: |
+        dotnet publish src/OpenSpeedTestClient/OpenSpeedTestClient.csproj `
+          -c Release `
+          -r win-x64 `
+          -p:PublishAot=true `
+          -p:PublishSingleFile=true `
+          --self-contained `
+          -o publish
+
+    - name: Copy config to publish directory
+      run: Copy-Item src/OpenSpeedTestClient/config.json publish/
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: OpenSpeedTestClient-win-x64
+        path: |
+          publish/OpenSpeedTestClient.exe
+          publish/config.json
+
+  release:
+    needs: build
+    runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: OpenSpeedTestClient-win-x64
+        path: release
+
+    - name: Create ZIP archive
+      run: |
+        Compress-Archive -Path release/* -DestinationPath OpenSpeedTestClient-${{ github.ref_name }}-win-x64.zip
+
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: OpenSpeedTestClient-${{ github.ref_name }}-win-x64.zip
+        body: |
+          ## OpenSpeedTest Client ${{ github.ref_name }}
+          
+          ### Installation
+          1. Download `OpenSpeedTestClient-${{ github.ref_name }}-win-x64.zip`
+          2. Extract to desired location
+          3. Edit `config.json` if needed
+          4. Run `OpenSpeedTestClient.exe`
+          
+          ### What's Changed
+          See [CHANGELOG.md](CHANGELOG.md) for details.
+          
+          ### Requirements
+          - Windows 10/11 (x64)
+          - No .NET runtime required (Native AOT)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
