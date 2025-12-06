@@ -24,7 +24,7 @@ public partial class MainForm : Form
             _config = configService.LoadConfig();
             _httpClient = configService.CreateHttpClient(_config);
 
-            lblServerValue.Text = _config.TestServerUrl;
+            lblServerValue.Text = _config.ServerUrl;
         }
         catch (Exception ex)
         {

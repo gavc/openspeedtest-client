@@ -50,16 +50,12 @@ public class ConfigService
 
     private void ValidateConfig(SpeedTestConfig config)
     {
-        // Validate test server URL
-        if (!Uri.TryCreate(config.TestServerUrl, UriKind.Absolute, out var uri))
-        {
-            throw new ArgumentException($"Invalid test server URL: {config.TestServerUrl}");
-        }
+        // Validate server URL
+        var serverUri = ValidateServerUrl(config.ServerUrl, "Server URL");
 
-        if (uri.Scheme != "http" && uri.Scheme != "https")
-        {
-            throw new ArgumentException($"Test server URL must use HTTP or HTTPS protocol: {config.TestServerUrl}");
-        }
+        // Ensure endpoints cannot redirect to another host
+        ValidateEndpoint(config.DownloadEndpoint, serverUri, "Download endpoint");
+        ValidateEndpoint(config.UploadEndpoint, serverUri, "Upload endpoint");
         
         // Validate ping server (just hostname)
         if (string.IsNullOrWhiteSpace(config.PingServer))
@@ -96,6 +92,50 @@ public class ConfigService
         if (config.UploadDataSizeMB < 1 || config.UploadDataSizeMB > 100)
         {
             throw new ArgumentException($"Upload data size must be between 1 and 100 MB, got: {config.UploadDataSizeMB}");
+        }
+    }
+
+    private static Uri ValidateServerUrl(string url, string name)
+    {
+        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
+        {
+            throw new ArgumentException($"Invalid {name}: {url}");
+        }
+
+        if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
+        {
+            throw new ArgumentException($"{name} must use HTTP or HTTPS protocol: {url}");
+        }
+
+        return uri;
+    }
+
+    private static void ValidateEndpoint(string endpoint, Uri baseUri, string name)
+    {
+        if (string.IsNullOrWhiteSpace(endpoint))
+        {
+            throw new ArgumentException($"{name} cannot be empty");
+        }
+
+        // Must be a relative path so it cannot change the host/scheme
+        if (!Uri.TryCreate(endpoint, UriKind.Relative, out var relativeUri) || relativeUri.IsAbsoluteUri)
+        {
+            throw new ArgumentException($"{name} must be a relative path, got: {endpoint}");
+        }
+
+        if (endpoint.StartsWith("//"))
+        {
+            throw new ArgumentException($"{name} cannot start with '//' because it would override the host");
+        }
+
+        if (!Uri.TryCreate(baseUri, relativeUri, out var combined))
+        {
+            throw new ArgumentException($"Invalid {name} for base URL {baseUri}: {endpoint}");
+        }
+
+        if (!string.Equals(combined.Host, baseUri.Host, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ArgumentException($"{name} must stay on host {baseUri.Host}, got {combined.Host}");
         }
     }
 

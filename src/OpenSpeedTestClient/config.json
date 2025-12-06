@@ -1,7 +1,6 @@
 {
   "pingServer": "192.168.1.23",
-  "testServerUrl": "http://192.168.1.23:3000",
-  "uploadServerUrl": "http://192.168.1.23:3000",
+  "serverUrl": "http://192.168.1.23:3000",
   "downloadEndpoint": "/downloading",
   "uploadEndpoint": "/upload",
   "threads": 6,

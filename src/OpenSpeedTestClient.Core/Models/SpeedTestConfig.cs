@@ -3,8 +3,7 @@ namespace OpenSpeedTestClient.Core.Models;
 public class SpeedTestConfig
 {
     public string PingServer { get; set; } = string.Empty;
-    public string TestServerUrl { get; set; } = string.Empty;
-    public string UploadServerUrl { get; set; } = string.Empty;
+    public string ServerUrl { get; set; } = string.Empty;
     public string DownloadEndpoint { get; set; } = string.Empty;
     public string UploadEndpoint { get; set; } = string.Empty;
     public int Threads { get; set; }

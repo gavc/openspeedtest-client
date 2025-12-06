@@ -25,7 +25,7 @@ public class SpeedTestRunner
             ComputerName = _systemInfoService.GetComputerName(),
             IP = _systemInfoService.GetLocalIPAddress(),
             ConnectionType = _systemInfoService.GetConnectionType(),
-            Server = _config.TestServerUrl,
+            Server = _config.ServerUrl,
             Timestamp = DateTime.UtcNow
         };
 

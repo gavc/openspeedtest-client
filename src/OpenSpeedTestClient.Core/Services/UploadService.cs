@@ -21,8 +21,7 @@ public class UploadService
         CancellationToken cancellationToken = default)
     {
         _totalBytesUploaded = 0;
-        var uploadServer = string.IsNullOrEmpty(_config.UploadServerUrl) ? _config.TestServerUrl : _config.UploadServerUrl;
-        var endpoint = $"{uploadServer}{_config.UploadEndpoint}";
+        var endpoint = $"{_config.ServerUrl}{_config.UploadEndpoint}";
 
         // Log the endpoint being used
         progress?.Report(new TestProgress

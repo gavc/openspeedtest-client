@@ -59,7 +59,7 @@ static class Program
             if (verbose)
             {
                 Console.Error.WriteLine("OpenSpeedTest Client - CLI Mode");
-                Console.Error.WriteLine($"Server: {config.TestServerUrl}");
+                Console.Error.WriteLine($"Server: {config.ServerUrl}");
                 Console.Error.WriteLine();
             }
 

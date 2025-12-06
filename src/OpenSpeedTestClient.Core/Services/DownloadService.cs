@@ -20,7 +20,7 @@ public class DownloadService
         CancellationToken cancellationToken = default)
     {
         _totalBytesDownloaded = 0;
-        var endpoint = $"{_config.TestServerUrl}{_config.DownloadEndpoint}";
+        var endpoint = $"{_config.ServerUrl}{_config.DownloadEndpoint}";
         
         // Log the endpoint being used
         progress?.Report(new TestProgress

@@ -45,15 +45,14 @@ public class AboutForm : Form
         attributionLink.Links.Add(0, attributionText.Length, "https://www.flaticon.com/free-icons/innovation");
         attributionLink.LinkClicked += (s, e) =>
         {
-            var url = e.Link.LinkData as string;
-            if (!string.IsNullOrEmpty(url))
+            var url = e.Link?.LinkData as string;
+            if (string.IsNullOrEmpty(url)) return;
+
+            try
             {
-                try
-                {
-                    Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
-                }
-                catch { }
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
+            catch { }
         };
 
         var closeBtn = new Button
