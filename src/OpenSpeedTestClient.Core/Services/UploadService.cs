@@ -21,7 +21,8 @@ public class UploadService
         CancellationToken cancellationToken = default)
     {
         _totalBytesUploaded = 0;
-        var endpoint = $"{_config.ServerUrl}{_config.UploadEndpoint}";
+        var uploadServerUrl = string.IsNullOrWhiteSpace(_config.UploadServerUrl) ? _config.ServerUrl : _config.UploadServerUrl;
+        var endpoint = $"{uploadServerUrl}{_config.UploadEndpoint}";
 
         // Log the endpoint being used
         progress?.Report(new TestProgress
@@ -79,15 +80,13 @@ public class UploadService
             while (!cancellationToken.IsCancellationRequested)
             {
                 requestCount++;
+                var url = $"{endpoint}?n={Random.Shared.NextDouble()}";
                 
                 try
                 {
                     using var content = new ByteArrayContent(uploadData);
                     content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
-                    // Add query parameter like the browser does
-                    var url = $"{endpoint}?n={Random.Shared.NextDouble()}";
-                    
                     using var response = await _httpClient.PostAsync(url, content, cancellationToken);
                     
                     if (!response.IsSuccessStatusCode)
@@ -110,9 +109,16 @@ public class UploadService
                     successCount++;
                     System.Diagnostics.Debug.WriteLine($"Upload thread completed request {requestCount}: {uploadData.Length} bytes");
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     break;
+                }
+                catch (TaskCanceledException ex)
+                {
+                    errorCount++;
+                    var timeoutMsg = $"Upload request timed out: {url}";
+                    System.Diagnostics.Debug.WriteLine($"{timeoutMsg}. {ex.Message}");
+                    throw new TimeoutException(timeoutMsg, ex);
                 }
                 catch (Exception ex)
                 {

@@ -75,6 +75,10 @@ public class SpeedTestRunner
                 Status = "Test complete!"
             });
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             result.Success = false;

@@ -44,18 +44,40 @@ public class ConfigService
             throw new InvalidOperationException("Failed to deserialize configuration file");
         }
 
+        NormalizeConfig(config);
         ValidateConfig(config);
         return config;
     }
 
+    private static void NormalizeConfig(SpeedTestConfig config)
+    {
+        // Backward compatibility for older docs/configs.
+        if (string.IsNullOrWhiteSpace(config.ServerUrl) && !string.IsNullOrWhiteSpace(config.TestServerUrl))
+        {
+            config.ServerUrl = config.TestServerUrl;
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.ServerUrl))
+        {
+            config.ServerUrl = config.ServerUrl.TrimEnd('/');
+        }
+
+        if (!string.IsNullOrWhiteSpace(config.UploadServerUrl))
+        {
+            config.UploadServerUrl = config.UploadServerUrl.TrimEnd('/');
+        }
+    }
+
     private void ValidateConfig(SpeedTestConfig config)
     {
-        // Validate server URL
-        var serverUri = ValidateServerUrl(config.ServerUrl, "Server URL");
+        // Validate server URLs
+        var downloadServerUri = ValidateServerUrl(config.ServerUrl, "Server URL");
+        var uploadServerUrl = string.IsNullOrWhiteSpace(config.UploadServerUrl) ? config.ServerUrl : config.UploadServerUrl;
+        var uploadServerUri = ValidateServerUrl(uploadServerUrl!, "Upload server URL");
 
         // Ensure endpoints cannot redirect to another host
-        ValidateEndpoint(config.DownloadEndpoint, serverUri, "Download endpoint");
-        ValidateEndpoint(config.UploadEndpoint, serverUri, "Upload endpoint");
+        ValidateEndpoint(config.DownloadEndpoint, downloadServerUri, "Download endpoint");
+        ValidateEndpoint(config.UploadEndpoint, uploadServerUri, "Upload endpoint");
         
         // Validate ping server (just hostname)
         if (string.IsNullOrWhiteSpace(config.PingServer))
@@ -150,9 +172,8 @@ public class ConfigService
 
         var client = new HttpClient(handler)
         {
-            // Use a longer timeout for the overall HttpClient (30 seconds)
-            // Individual ping requests will still be quick
-            Timeout = TimeSpan.FromSeconds(30)
+            // Let test-scoped CancellationToken control duration.
+            Timeout = Timeout.InfiniteTimeSpan
         };
 
         // Add browser-like headers

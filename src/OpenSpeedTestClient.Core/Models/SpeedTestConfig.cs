@@ -4,6 +4,8 @@ public class SpeedTestConfig
 {
     public string PingServer { get; set; } = string.Empty;
     public string ServerUrl { get; set; } = string.Empty;
+    public string? TestServerUrl { get; set; } // Legacy alias for ServerUrl
+    public string? UploadServerUrl { get; set; } // Optional separate upload base URL
     public string DownloadEndpoint { get; set; } = string.Empty;
     public string UploadEndpoint { get; set; } = string.Empty;
     public int Threads { get; set; }

@@ -31,7 +31,7 @@ Edit `config.json` to customize test parameters:
 ```json
 {
   "pingServer": "192.168.1.23",
-  "testServerUrl": "http://192.168.1.23:3000",
+  "serverUrl": "http://192.168.1.23:3000",
   "uploadServerUrl": "http://192.168.1.23:3000",
   "downloadEndpoint": "/downloading",
   "uploadEndpoint": "/upload",
@@ -48,8 +48,8 @@ Edit `config.json` to customize test parameters:
 ### Configuration Options
 
 - **pingServer**: Hostname/IP to ping for latency measurement
-- **testServerUrl**: Base URL used for downloads (HTTP or HTTPS)
-- **uploadServerUrl**: Base URL used for uploads (falls back to `testServerUrl` when empty)
+- **serverUrl**: Base URL used for downloads (HTTP or HTTPS)
+- **uploadServerUrl**: Optional base URL used for uploads (falls back to `serverUrl` when empty)
 - **downloadEndpoint**: Path for download tests (default: `/downloading`)
 - **uploadEndpoint**: Path for upload tests (default: `/upload`)
 - **threads**: Parallel connections (1-32, default: 6)
@@ -59,6 +59,7 @@ Edit `config.json` to customize test parameters:
 - **pingTimeout**: Ping request timeout in milliseconds (1000-30000, default: 5000)
 - **uploadDataSizeMB**: Upload chunk size in megabytes (1-100, default: 10)
 - **allowInsecureCerts**: Allow self-signed certificates for internal servers (default: false)
+- **testServerUrl**: Legacy alias for `serverUrl` (backward compatibility)
 
 ## Usage
 

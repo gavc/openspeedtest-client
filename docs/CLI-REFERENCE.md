@@ -168,7 +168,7 @@ Default location: `config.json` (same directory as executable)
 ```json
 {
   "pingServer": "192.168.1.23",
-  "testServerUrl": "http://192.168.1.23:3000",
+  "serverUrl": "http://192.168.1.23:3000",
   "uploadServerUrl": "http://192.168.1.23:3000",
   "downloadEndpoint": "/downloading",
   "uploadEndpoint": "/upload",
@@ -185,8 +185,8 @@ Default location: `config.json` (same directory as executable)
 ### Configuration Parameters
 
 - **pingServer**: Hostname/IP to ping for latency measurement
-- **testServerUrl**: Base URL used for downloads (HTTP or HTTPS)
-- **uploadServerUrl**: Base URL used for uploads (falls back to `testServerUrl` when empty)
+- **serverUrl**: Base URL used for downloads (HTTP or HTTPS)
+- **uploadServerUrl**: Optional base URL used for uploads (falls back to `serverUrl` when empty)
 - **downloadEndpoint**: Download test endpoint (default: `/downloading`)
 - **uploadEndpoint**: Upload test endpoint (default: `/upload`)
 - **threads**: Parallel connections (1-32, default: 6)
@@ -196,6 +196,7 @@ Default location: `config.json` (same directory as executable)
 - **pingTimeout**: Timeout in milliseconds (1000-30000, default: 5000)
 - **uploadDataSizeMB**: Upload chunk size MB (1-100, default: 10)
 - **allowInsecureCerts**: Allow self-signed certs (default: false)
+- **testServerUrl**: Legacy alias for `serverUrl` (backward compatibility)
 
 ## Troubleshooting
 

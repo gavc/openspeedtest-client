@@ -104,9 +104,16 @@ public class DownloadService
                     
                     System.Diagnostics.Debug.WriteLine($"Download thread completed request {requestCount}: {totalBytesThisRequest} bytes");
                 }
-                catch (TaskCanceledException)
+                catch (TaskCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
                     break;
+                }
+                catch (TaskCanceledException ex)
+                {
+                    errorCount++;
+                    var timeoutMsg = $"Download request timed out: {url}";
+                    System.Diagnostics.Debug.WriteLine($"{timeoutMsg}. {ex.Message}");
+                    throw new TimeoutException(timeoutMsg, ex);
                 }
                 catch (Exception ex)
                 {
