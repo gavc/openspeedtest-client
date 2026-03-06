@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Net;
 using System.Security.Cryptography;
 using OpenSpeedTestClient.Core.Models;
 
@@ -84,7 +85,9 @@ public class UploadService
                 
                 try
                 {
-                    using var content = new ByteArrayContent(uploadData);
+                    using var content = new CountingByteArrayContent(
+                        uploadData,
+                        bytesWritten => Interlocked.Add(ref _totalBytesUploaded, bytesWritten));
                     content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
 
                     using var response = await _httpClient.PostAsync(url, content, cancellationToken);
@@ -92,7 +95,9 @@ public class UploadService
                     if (!response.IsSuccessStatusCode)
                     {
                         errorCount++;
-                        var errorMsg = $"Upload failed: HTTP {(int)response.StatusCode} {response.ReasonPhrase} to {endpoint}";
+                        var uploadedMb = Interlocked.Read(ref _totalBytesUploaded) / (1024.0 * 1024.0);
+                        var errorMsg =
+                            $"Upload failed after sending {uploadedMb:F2} MB: HTTP {(int)response.StatusCode} {response.ReasonPhrase} to {endpoint}";
                         System.Diagnostics.Debug.WriteLine(errorMsg);
                         
                         // Throw on first error to help diagnose
@@ -104,8 +109,6 @@ public class UploadService
                         await Task.Delay(1000, cancellationToken);
                         continue;
                     }
-
-                    Interlocked.Add(ref _totalBytesUploaded, uploadData.Length);
                     successCount++;
                     System.Diagnostics.Debug.WriteLine($"Upload thread completed request {requestCount}: {uploadData.Length} bytes");
                 }
@@ -134,5 +137,38 @@ public class UploadService
         }
         
         System.Diagnostics.Debug.WriteLine($"Upload thread finished: {requestCount} requests, {successCount} successful, {errorCount} errors");
+    }
+
+    // Streams data in chunks and reports bytes as they are written so
+    // long-running requests still contribute to speed samples.
+    private sealed class CountingByteArrayContent : HttpContent
+    {
+        private const int ChunkSizeBytes = 64 * 1024;
+        private readonly byte[] _data;
+        private readonly Action<int> _onBytesWritten;
+
+        public CountingByteArrayContent(byte[] data, Action<int> onBytesWritten)
+        {
+            _data = data;
+            _onBytesWritten = onBytesWritten;
+        }
+
+        protected override bool TryComputeLength(out long length)
+        {
+            length = _data.Length;
+            return true;
+        }
+
+        protected override async Task SerializeToStreamAsync(Stream stream, TransportContext? context)
+        {
+            var offset = 0;
+            while (offset < _data.Length)
+            {
+                var bytesToWrite = Math.Min(ChunkSizeBytes, _data.Length - offset);
+                await stream.WriteAsync(_data.AsMemory(offset, bytesToWrite));
+                _onBytesWritten(bytesToWrite);
+                offset += bytesToWrite;
+            }
+        }
     }
 }

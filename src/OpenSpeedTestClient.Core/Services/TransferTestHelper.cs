@@ -70,7 +70,17 @@ internal static class TransferTestHelper
 
         try
         {
-            await Task.Delay(TimeSpan.FromSeconds(durationSeconds), cancellationToken);
+            var durationTask = Task.Delay(TimeSpan.FromSeconds(durationSeconds), testToken);
+            var allWorkersTask = Task.WhenAll(workerTasks);
+
+            // Stop as soon as either duration elapses or a worker faults/completes unexpectedly.
+            var completed = await Task.WhenAny(durationTask, allWorkersTask);
+
+            if (completed == allWorkersTask)
+            {
+                // Propagate worker failures immediately (fail fast).
+                await allWorkersTask;
+            }
         }
         finally
         {

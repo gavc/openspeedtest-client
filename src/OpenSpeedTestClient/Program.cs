@@ -54,7 +54,7 @@ static class Program
             // Load configuration
             var configService = new ConfigService();
             var config = configService.LoadConfig(configPath);
-            var httpClient = configService.CreateHttpClient(config);
+            using var httpClient = configService.CreateHttpClient(config);
 
             if (verbose)
             {
